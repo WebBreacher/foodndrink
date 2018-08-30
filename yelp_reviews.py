@@ -2,6 +2,10 @@
 """
     Author: Micah Hoffman (@WebBreacher)
     Purpose: To look up a user on yelp.com
+
+    # Test users
+    52 reviews = 7Yn_ljl1SCd2br4NMFZkxA
+    1333 reviews = 58yXn5Y4409kc9q88YwU6w
 """
 
 import argparse
@@ -41,19 +45,21 @@ def get_data_from_yelp(url):
         print('[!]   ERROR - yelp issue: {}'.format(str(e)))
         exit(1)
 
-
+# TODO - Get user data
 def get_user_data(passed_user):
     # Parsing user information
     url = 'https://www.yelp.com/user_details?userid={}'.format(passed_user)
     print("\n[ ] USER DATA: Requesting {}".format(url))
     resp = get_data_from_yelp(url)
     html_doc = BeautifulSoup(resp, "html.parser")
-    #user1 = html_doc.find_all('span', 'stat')
 
-    """ TODO
-        <ul class="ylist">
-                <li>
-                    <h4>Location</h4>
+    """ TODO - Parse the content below
+        <div class="user-profile_info arrange_unit">
+                <h1>Kimberly &#34;Yelp Yoda&#34; S.</h1>
+                    <h3 class="user-location alternate">Washington, DC</h3>
+        <strong>4369</strong> Friends
+        <strong>1333</strong> Reviews
+        <strong>10344</strong> Photos
     """
 
     if user1:
@@ -73,7 +79,6 @@ def yelp_pages(url):
             matchObj = re.search(r'\n\s+([a-zA-Z0-9].*)\s+<', str(a), re.M|re.I)
             review_addresses.append(matchObj.group(1).replace('<br/>', ', '))
 
-        #print(review_addresses)
         for addy in review_addresses:
             g = geocoder.google(addy)
             if g:
@@ -88,21 +93,19 @@ def get_venue_data(passed_user):
     review_addresses = []
     reviewlatslongs = []
     url = 'https://www.yelp.com/user_details_reviews_self?userid={}'.format(passed_user)
-    print("\n[ ] VENUE DATA: Requesting {}".format(url))
+    print("[ ] VENUE DATA: Requesting {}".format(url))
     reviewlatslongs = yelp_pages(url)
 
     # Try to make pulls for additional reviews
     for num in range(10, 5000, 10):
         url = 'https://www.yelp.com/user_details_reviews_self?userid={}&rec_pagestart={}'.format(passed_user, num)
-        print("\n[ ] VENUE DATA: Requesting {}".format(url))
+        print("[ ] VENUE DATA: Requesting {}".format(url))
         reviewlatslongs1 = yelp_pages(url)
         if reviewlatslongs1:
             reviewlatslongs.extend(reviewlatslongs1)
         else:
             # If a false value came back, no addresses were found and we are done iterating
             break
-    #print(len(reviewlatslongs))
-    #print(reviewlatslongs)
 
     review_lats, review_longs = zip(*reviewlatslongs)
 

@@ -101,9 +101,9 @@ def get_venue_data(passed_user):
         else:
             # If a false value came back, no addresses were found and we are done iterating
             break
-    print(len(reviewlatslongs))
-    print(reviewlatslongs)
-    exit()
+    #print(len(reviewlatslongs))
+    #print(reviewlatslongs)
+
     review_lats, review_longs = zip(*reviewlatslongs)
 
     # Compute the center Lat and Long to center the map
@@ -112,17 +112,9 @@ def get_venue_data(passed_user):
     gmap = gmplot.GoogleMapPlotter(center_lat, center_long, 6)
 
     # Create the points/heatmap/circles on the map
-    """for lat, lng in reviewlatslongs:
-        gmap.circle(lat, lng, 8000)
-    gmap.scatter(drink_lats, drink_longs, '#FFFFFF', 8000, marker=False)"""
-    for latlng, num, title in reviewlatslongstitle:
-        try:
-            gmap.marker(latlng[0], latlng[1], title='{} beers logged at {}'.format(num, title))
-        except:
-            pass
-    gmap.heatmap(drink_lats, drink_longs, 1, 100)
-    gmap.scatter(drink_lats, drink_longs, '#333333', size=20, marker=False)
-    gmap.plot(drink_lats, drink_longs, '#FF33FF', edge_width=3)
+    gmap.heatmap(review_lats, review_longs, 1, 100)
+    gmap.scatter(review_lats, review_longs, '#333333', size=20, marker=False)
+    gmap.plot(review_lats, review_longs, '#FF33FF', edge_width=3)
 
     outfile = 'yelp_map_{}_{}.html'.format(args.user, str(int(time.time())))
     gmap.draw(outfile)

@@ -85,7 +85,7 @@ def yelp_pages(url):
                 reviewlatslongs.append(tuple(g.latlng))
         return reviewlatslongs
     else:
-        print('[-] No review addresses found')
+        print('\n[-] No review addresses found')
         return False
 
 def get_venue_data(passed_user):

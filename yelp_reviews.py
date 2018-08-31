@@ -29,13 +29,14 @@ def get_mean(lst):
 # Parse command line input
 parser = argparse.ArgumentParser(description="Grab yelp user activity")
 parser.add_argument('-u', '--user', required=True, help='Username to research')
+parser.add_argument('--csv', action="store_true", help='Output to CSV')
 args = parser.parse_args()
 
 
 def get_data_from_yelp(url):
     # Setting up and Making the Web Call
     try:
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/63.0'
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0'
         headers = {'User-Agent': user_agent}
         # Make web request for that URL and don't verify SSL/TLS certs
         response = requests.get(url, headers=headers, verify=False)
@@ -123,6 +124,13 @@ def get_venue_data(passed_user):
     gmap.draw(outfile)
     print("\n[ ] HTML output file named {} was written to disk.\n".format(outfile))
 
+    print(review_addresses)
+    """if args.csv:
+        outfile = 'yelp_map_{}_{}.csv'.format(args.user, str(int(time.time())))
+        with open(outfile, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(reviewlatslongs)
+    """
 
 ###########################
 # Start

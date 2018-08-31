@@ -113,8 +113,9 @@ def yelp_pages(url):
             elif openstreet:
                 osm = geocoder.osm(addy)
                 if osm.x:
-                    osm_combined = '{}, {}'.format(osm.x,osm.y)
-                    reviewlatslongs.append(osm_combined)
+                    #osm_combined = '{}, {}'.format(osm.x,osm.y)
+                    #reviewlatslongs.append(osm_combined)
+                    reviewlatslongs.append((osm.x,osm.y))
 
         #print(reviewlatslongs) # DEBUG
         return reviewlatslongs
@@ -153,16 +154,18 @@ def get_venue_data(passed_user):
 
     outfile = 'yelp_map_{}_{}.html'.format(args.user, str(int(time.time())))
     gmap.draw(outfile)
-    print("\n[ ] HTML output file named {} was written to disk.\n".format(outfile))
+    print("\n[ ] HTML output file named {} was written to disk.".format(outfile))
 
     if csv:
         outfile = 'yelp_map_{}_{}.csv'.format(args.user, str(int(time.time())))
-        print("\n[ ] CSV output file named {} was written to disk.\n".format(outfile))
-
+        print("[ ] CSV output file named {} was written to disk.".format(outfile))
+        csv_data = []
+        for row in reviewlatslongs:
+            row1 = '{}, {}'.format(row[0], row[1])
+            csv_data.append([passed_user, row1])
         with open(outfile, 'w', newline='') as f:
             writer = csv.writer(f)
-            for row in reviewlatslongs:
-                writer.writerows([passed_user,row])
+            writer.writerows(csv_data)
 
 ###########################
 # Start

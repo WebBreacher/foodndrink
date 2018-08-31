@@ -4,12 +4,14 @@
     Purpose: To look up a user on yelp.com
 
     # Test users
+    29 reviews = U4gWrMtHevbDF3Le3GBLHA
     52 reviews = 7Yn_ljl1SCd2br4NMFZkxA
     1333 reviews = 58yXn5Y4409kc9q88YwU6w
 """
 
 import argparse
 from bs4 import BeautifulSoup
+import csv
 import geocoder
 import gmplot
 import re
@@ -80,10 +82,41 @@ def yelp_pages(url):
             matchObj = re.search(r'\n\s+([a-zA-Z0-9].*)\s+<', str(a), re.M|re.I)
             review_addresses.append(matchObj.group(1).replace('<br/>', ', '))
 
+        # Test if we can geocode with Google or OpenStreetMap
+        test_google = geocoder.google('1600 pennsylvania ave, washington, dc')
+        if test_google.status == 'OVER_QUERY_LIMIT':
+            goog = False
+            print('[!] ERROR - Cannot Geocode with Google - OVER_QUERY_LIMIT. Trying OSM.')
+            # Test if we can geocode with OpenStreetMaps
+            test_osm = geocoder.osm('1600 pennsylvania ave, washington, dc')
+            if test_osm.x:
+                print('[ ] Can Geocode with OSM.')
+                openstreet = True
+            else:
+                print('[!] ERROR - Cannot Geocode with OSM.')
+                openstreet = False
+        elif test_google.latlng:
+            goog = True
+        else:
+            goog = False
+
+        if goog == False and openstreet == False:
+            print('[!] ERROR - Cannot geocode to Google or OpenStreetMap. Wait a while and re-run script.')
+            exit(1)
+
+        # At least one of the geocoders worked
         for addy in review_addresses:
-            g = geocoder.google(addy)
-            if g:
-                reviewlatslongs.append(tuple(g.latlng))
+            if goog:
+                g = geocoder.google(addy)
+                if g.latlng:
+                    reviewlatslongs.append(tuple(g.latlng))
+            elif openstreet:
+                osm = geocoder.osm(addy)
+                if osm.x:
+                    osm_combined = '{}, {}'.format(osm.x,osm.y)
+                    reviewlatslongs.append(osm_combined)
+
+        #print(reviewlatslongs) # DEBUG
         return reviewlatslongs
     else:
         print('\n[-] No review addresses found')
@@ -91,8 +124,6 @@ def yelp_pages(url):
 
 def get_venue_data(passed_user):
     # Parsing check-in location information
-    review_addresses = []
-    reviewlatslongs = []
     url = 'https://www.yelp.com/user_details_reviews_self?userid={}'.format(passed_user)
     print("[ ] VENUE DATA: Requesting {}".format(url))
     reviewlatslongs = yelp_pages(url)
@@ -124,13 +155,14 @@ def get_venue_data(passed_user):
     gmap.draw(outfile)
     print("\n[ ] HTML output file named {} was written to disk.\n".format(outfile))
 
-    print(review_addresses)
-    """if args.csv:
+    if csv:
         outfile = 'yelp_map_{}_{}.csv'.format(args.user, str(int(time.time())))
+        print("\n[ ] CSV output file named {} was written to disk.\n".format(outfile))
+
         with open(outfile, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerows(reviewlatslongs)
-    """
+            for row in reviewlatslongs:
+                writer.writerows([passed_user,row])
 
 ###########################
 # Start

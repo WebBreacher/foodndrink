@@ -132,11 +132,11 @@ def get_venue_data(passed_user):
     center_lat = get_mean(review_lats)
     center_long = get_mean(review_longs)
     gmap = gmplot.GoogleMapPlotter(center_lat, center_long, 6)
-
+    gmap.coloricon = "http://www.googlemapsmarkers.com/v1/%s/"
     # Create the points/heatmap/circles on the map
     gmap.heatmap(review_lats, review_longs, 1, 100)
-    gmap.scatter(review_lats, review_longs, '#333333', size=20, marker=False)
-    gmap.plot(review_lats, review_longs, '#FF33FF', edge_width=3)
+    gmap.scatter(review_lats, review_longs, '#333333', size=1, marker=True)
+    gmap.plot(review_lats, review_longs, '#FF33FF', edge_width=1)
 
     outfile = 'ratebeer_map_{}_{}.html'.format(args.user, str(int(time.time())))
     gmap.draw(outfile)

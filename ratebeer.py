@@ -11,11 +11,13 @@
 import argparse
 from bs4 import BeautifulSoup
 import geocoder
+import googlemaps
 import gmplot
 import re
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import time
+from geocode_api_keys import *
 
 
 ####
@@ -27,7 +29,7 @@ def get_mean(lst):
 
 
 # Parse command line input
-parser = argparse.ArgumentParser(description="Grab ratebeer user activity")
+parser = argparse.ArgumentParser(description='Grab ratebeer user activity')
 parser.add_argument('-u', '--user', required=True, help='Username to research')
 args = parser.parse_args()
 
@@ -35,7 +37,7 @@ args = parser.parse_args()
 def get_data_from_ratebeer(url):
     # Setting up and Making the Web Call
     try:
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/63.0'
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101 Firefox/68.0'
         headers = {'User-Agent': user_agent}
         # Make web request for that URL and don't verify SSL/TLS certs
         response = requests.get(url, headers=headers, verify=False)
@@ -72,9 +74,10 @@ def ratebeer_pages(url):
     entry = []
     review_addresses = []
     reviewlatslongs = []
+    gmaps = googlemaps.Client(key=google_api_key)
     black_list = ['Location', 'Avg', 'Score', 'Date', 'next >', 'last >>', '< prev']
     resp = get_data_from_ratebeer(url)
-    html_doc = BeautifulSoup(resp, "html.parser")
+    html_doc = BeautifulSoup(resp, 'html.parser')
     addresses = html_doc.find_all('a')
     if addresses:
         for a in addresses:
@@ -99,9 +102,12 @@ def ratebeer_pages(url):
                 counter = 1
 
         for addy in review_addresses:
-            g = geocoder.google(addy)
-            if g:
-                reviewlatslongs.append(tuple(g.latlng))
+            g = gmaps.geocode(addy)
+            if g[0]['geometry']['location']:
+                loc = g[0]['geometry']['location']['lat'], g[0]['geometry']['location']['lng']
+                reviewlatslongs.append(tuple(loc))
+            else:
+                continue
         return reviewlatslongs
     else:
         print('\n[-] No additional entries found')
@@ -112,13 +118,13 @@ def get_venue_data(passed_user):
     review_addresses = []
     reviewlatslongs = []
     url = 'https://www.ratebeer.com/ajax/user/{}/place-ratings/1/1/'.format(passed_user)
-    print("[ ] VENUE DATA: Requesting {}".format(url))
+    print('[ ] VENUE DATA: Requesting {}'.format(url))
     reviewlatslongs = ratebeer_pages(url)
 
     # Try to make pulls for additional reviews
     for num in range(2, 100, 1):
         url = 'https://www.ratebeer.com/ajax/user/{}/place-ratings/{}/{}/'.format(passed_user, num, num)
-        print("[ ] VENUE DATA: Requesting {}".format(url))
+        print('[ ] VENUE DATA: Requesting {}'.format(url))
         reviewlatslongs1 = ratebeer_pages(url)
         if reviewlatslongs1:
             reviewlatslongs.extend(reviewlatslongs1)
@@ -140,7 +146,7 @@ def get_venue_data(passed_user):
 
     outfile = 'ratebeer_map_{}_{}.html'.format(args.user, str(int(time.time())))
     gmap.draw(outfile)
-    print("\n[ ] HTML output file named {} was written to disk.\n".format(outfile))
+    print('\n[ ] HTML output file named {} was written to disk.\n'.format(outfile))
 
 
 ###########################
@@ -154,4 +160,4 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 ###############
 # Get Venue info
 ###############
-venue = get_venue_data(args.user)
+get_venue_data(args.user)

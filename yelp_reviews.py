@@ -34,9 +34,9 @@ def get_mean(lst):
 
 
 # Parse command line input
-parser = argparse.ArgumentParser(description="Grab yelp user activity")
+parser = argparse.ArgumentParser(description='Grab yelp user activity')
 parser.add_argument('-u', '--user', required=True, help='Username to research')
-parser.add_argument('--csv', action="store_true", help='Output to CSV')
+parser.add_argument('--csv', action='store_true', help='Output to CSV')
 args = parser.parse_args()
 
 
@@ -177,9 +177,9 @@ def get_venue_data(passed_user):
     gmap.draw(outfile)
     print("\n[ ] HTML output file named {} was written to disk.".format(outfile))
 
-    if csv:
+    if args.csv:
         outfile = 'yelp_map_{}_{}.csv'.format(args.user, str(int(time.time())))
-        print("[ ] CSV output file named {} was written to disk.".format(outfile))
+        print('[ ] CSV output file named {} was written to disk.'.format(outfile))
         csv_data = []
         for row in reviewlatslongs:
             row1 = '{}, {}'.format(row[0], row[1])

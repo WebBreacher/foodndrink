@@ -7,6 +7,7 @@
     29 reviews = U4gWrMtHevbDF3Le3GBLHA
     52 reviews = 7Yn_ljl1SCd2br4NMFZkxA
     1333 reviews = 58yXn5Y4409kc9q88YwU6w
+    TODO - 71 reviews = j5-CYwBPJMNFEnfg6aQ38Q (Canada...problem with geocoding)
 """
 
 import argparse
@@ -14,6 +15,7 @@ from bs4 import BeautifulSoup
 import csv
 import geocoder
 import gmplot
+import random
 import re
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -38,7 +40,7 @@ args = parser.parse_args()
 def get_data_from_yelp(url):
     # Setting up and Making the Web Call
     try:
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0'
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/65.0'
         headers = {'User-Agent': user_agent}
         # Make web request for that URL and don't verify SSL/TLS certs
         response = requests.get(url, headers=headers, verify=False)
@@ -125,15 +127,19 @@ def yelp_pages(url):
 
 def get_venue_data(passed_user):
     # Parsing check-in location information
-    url = 'https://www.yelp.com/user_details_reviews_self?userid={}'.format(passed_user)
+    url = 'https://www.yelp.com/user_details?userid={}'.format(passed_user)
     print("[ ] VENUE DATA: Requesting {}".format(url))
     reviewlatslongs = yelp_pages(url)
 
+    # Pause to prevent Yelp from shunning us
+    time.sleep(random.random())
     # Try to make pulls for additional reviews
     for num in range(10, 5000, 10):
-        url = 'https://www.yelp.com/user_details_reviews_self?userid={}&rec_pagestart={}'.format(passed_user, num)
+        url = 'https://www.yelp.com/user_details?userid={}&rec_pagestart={}'.format(passed_user, num)
         print("[ ] VENUE DATA: Requesting {}".format(url))
         reviewlatslongs1 = yelp_pages(url)
+        # Pause to prevent Yelp from shunning us
+        time.sleep(random.random())
         if reviewlatslongs1:
             reviewlatslongs.extend(reviewlatslongs1)
         else:

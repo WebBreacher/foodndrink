@@ -15,6 +15,7 @@ from bs4 import BeautifulSoup
 import csv
 import geocoder
 import gmplot
+import googlemaps
 import random
 import re
 import requests
@@ -90,21 +91,29 @@ def yelp_pages(url):
         if test_google.status == 'OVER_QUERY_LIMIT':
             goog = False
             print('[!] ERROR - Cannot Geocode with Google - OVER_QUERY_LIMIT. Trying OSM.')
-            # Test if we can geocode with OpenStreetMaps
-            test_osm = geocoder.osm('1600 pennsylvania ave, washington, dc')
-            if test_osm.x:
-                print('[ ] Can Geocode with OSM.')
-                openstreet = True
+            # Test if we can geocode with Bing
+            test_bing = geocoder.bing('1600 pennsylvania ave, washington, dc', key=bing_api_key)
+            if test_bing.latlng:
+                print('[ ] Can Geocode with Bing ({}).'.format(test_bing.latlng))
+                bing = True
             else:
-                print('[!] ERROR - Cannot Geocode with OSM.')
-                openstreet = False
+                print('[!] ERROR - Cannot Geocode with Bing trying OSM')
+                bing = False    
+                # Test if we can geocode with OpenStreetMaps
+                test_osm = geocoder.osm('1600 pennsylvania ave, washington, dc')
+                if test_osm.x:
+                    print('[ ] Can Geocode with OSM.')
+                    openstreet = True
+                else:
+                    print('[!] ERROR - Cannot Geocode with OSM.')
+                    openstreet = False
         elif test_google.latlng:
             goog = True
         else:
             goog = False
 
-        if goog == False and openstreet == False:
-            print('[!] ERROR - Cannot geocode to Google or OpenStreetMap. Wait a while and re-run script.')
+        if goog == False and bing == False and openstreet == False:
+            print('[!] ERROR - Cannot geocode to Google, Bing or OpenStreetMap. Wait a while and re-run script.')
             exit(1)
 
         # At least one of the geocoders worked
@@ -113,6 +122,10 @@ def yelp_pages(url):
                 g = geocoder.google(addy)
                 if g.latlng:
                     reviewlatslongs.append(tuple(g.latlng))
+            elif bing:
+                b = geocoder.bing(addy, key=bing_api_key)
+                if b.latlng:
+                    reviewlatslongs.append(tuple(b.latlng))
             elif openstreet:
                 osm = geocoder.osm(addy)
                 if osm.x:
@@ -120,7 +133,7 @@ def yelp_pages(url):
                     #reviewlatslongs.append(osm_combined)
                     reviewlatslongs.append((osm.x,osm.y))
 
-        #print(reviewlatslongs) # DEBUG
+        print(reviewlatslongs) # DEBUG
         return reviewlatslongs
     else:
         print('\n[-] No review addresses found')

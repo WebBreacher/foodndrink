@@ -4,10 +4,11 @@
     Purpose: To look up a user on yelp.com
 
     # Test users
-    29 reviews = U4gWrMtHevbDF3Le3GBLHA
-    52 reviews = 7Yn_ljl1SCd2br4NMFZkxA
-    1333 reviews = 58yXn5Y4409kc9q88YwU6w
-    TODO - 71 reviews = j5-CYwBPJMNFEnfg6aQ38Q (Canada...problem with geocoding)
+    29 reviews   = U4gWrMtHevbDF3Le3GBLHA (Eva, CA)
+    52 reviews   = 7Yn_ljl1SCd2br4NMFZkxA (Michele, CA)
+    136 reviews  = 85wCGBfsbcsT4RkplclSKg (Konark, Brazil)
+    259 reviews  = cZrsBqcs3-UGmsCwvvPutA (James, New Zealand)
+    1000 reviews = 4paWpLov6LjpsNNgE1fhSg (Scotty, SC)
 """
 
 import argparse
@@ -42,7 +43,8 @@ args = parser.parse_args()
 def get_data_from_yelp(url):
     # Setting up and Making the Web Call
     try:
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/65.0'
+        # Need to use a non-Python User Agent to interact with Yelp
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0'
         headers = {'User-Agent': user_agent}
         # Make web request for that URL and don't verify SSL/TLS certs
         response = requests.get(url, headers=headers, verify=False)
@@ -69,8 +71,8 @@ def get_user_data(passed_user):
         <strong>10344</strong> Photos
     """
 
-    if user1:
-        return user1
+    #if user1:
+    #    return user1
 
 # TODO - Get friend data from https://www.yelp.com/user_details_friends?userid=XXX
 
@@ -78,6 +80,7 @@ def yelp_pages(url):
     # This function retrieves location content by extracting <address>
     review_addresses = []
     reviewlatslongs = []
+    gmaps = googlemaps.Client(key=google_api_key)
     resp = get_data_from_yelp(url)
     html_doc = BeautifulSoup(resp, "html.parser")
     addresses = html_doc.find_all('address')
@@ -87,17 +90,21 @@ def yelp_pages(url):
             review_addresses.append(matchObj.group(1).replace('<br/>', ', '))
 
         # Test if we can geocode with Google or OpenStreetMap
-        test_google = geocoder.google('1600 pennsylvania ave, washington, dc')
-        if test_google.status == 'OVER_QUERY_LIMIT':
+        test_google = gmaps.geocode('1600 pennsylvania ave, washington, dc')
+        #print(test_google[0]['geometry']['location']) #DEBUG
+        if test_google[0]['geometry']['location']['lat']:
+            print('[ ] Can Geocode with Google.')
+            goog = True
+        else:
+            print('[!] ERROR - Cannot Geocode with Google.')
             goog = False
-            print('[!] ERROR - Cannot Geocode with Google - OVER_QUERY_LIMIT. Trying OSM.')
             # Test if we can geocode with Bing
             test_bing = geocoder.bing('1600 pennsylvania ave, washington, dc', key=bing_api_key)
             if test_bing.latlng:
-                print('[ ] Can Geocode with Bing ({}).'.format(test_bing.latlng))
+                print('[ ] Can Geocode with Bing.')
                 bing = True
             else:
-                print('[!] ERROR - Cannot Geocode with Bing trying OSM')
+                print('[!] ERROR - Cannot Geocode with Bing.')
                 bing = False    
                 # Test if we can geocode with OpenStreetMaps
                 test_osm = geocoder.osm('1600 pennsylvania ave, washington, dc')
@@ -107,21 +114,19 @@ def yelp_pages(url):
                 else:
                     print('[!] ERROR - Cannot Geocode with OSM.')
                     openstreet = False
-        elif test_google.latlng:
-            goog = True
-        else:
-            goog = False
+
 
         if goog == False and bing == False and openstreet == False:
-            print('[!] ERROR - Cannot geocode to Google, Bing or OpenStreetMap. Wait a while and re-run script.')
+            print('[!] ERROR - Cannot geocode to Google, Bing or OpenStreetMap. We are done here.')
             exit(1)
 
         # At least one of the geocoders worked
         for addy in review_addresses:
             if goog:
-                g = geocoder.google(addy)
-                if g.latlng:
-                    reviewlatslongs.append(tuple(g.latlng))
+                g = gmaps.geocode(addy)
+                if g[0]['geometry']['location']:
+                    loc = g[0]['geometry']['location']['lat'], g[0]['geometry']['location']['lng']
+                    reviewlatslongs.append(tuple(loc))
             elif bing:
                 b = geocoder.bing(addy, key=bing_api_key)
                 if b.latlng:
@@ -129,11 +134,7 @@ def yelp_pages(url):
             elif openstreet:
                 osm = geocoder.osm(addy)
                 if osm.x:
-                    #osm_combined = '{}, {}'.format(osm.x,osm.y)
-                    #reviewlatslongs.append(osm_combined)
                     reviewlatslongs.append((osm.x,osm.y))
-
-        print(reviewlatslongs) # DEBUG
         return reviewlatslongs
     else:
         print('\n[-] No review addresses found')
@@ -198,4 +199,4 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 ###############
 # Get Venue info
 ###############
-venue = get_venue_data(args.user)
+get_venue_data(args.user)

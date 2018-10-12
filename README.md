@@ -94,6 +94,11 @@ python yelp_reviews.py -u U4gWrMtHevbDF3Le3GBLHA
 [ ] HTML output file named yelp_map_U4gWrMtHevbDF3Le3GBLHA_1539303863.html was written to disk.
 ```
 
+All scripts should produce HTML output files that show the geolocated content. An example is below:
+![image of sample output][example_output.png]
+
+If your web page shows "For Development Purposes Only" watermarks, you will need to edit the HTML file and add your Google API key for JavaScript Maps API. Add `key=YOUR_GOOGLE_API_KEY` to the end of the maps.googleapis.com line like this: `https://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=true_or_false&key=YOUR_GOOGLE_API_KEY`
+
 ## License
 
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.

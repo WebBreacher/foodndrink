@@ -95,7 +95,7 @@ python yelp_reviews.py -u U4gWrMtHevbDF3Le3GBLHA
 ```
 
 All scripts should produce HTML output files that show the geolocated content. An example is below:
-![image of sample output][example_output.png]
+![image of sample output](example_output.png)
 
 If your web page shows "For Development Purposes Only" watermarks, you will need to edit the HTML file and add your Google API key for JavaScript Maps API. Add `key=YOUR_GOOGLE_API_KEY` to the end of the maps.googleapis.com line like this: `https://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=true_or_false&key=YOUR_GOOGLE_API_KEY`
 

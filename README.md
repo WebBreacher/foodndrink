@@ -1,6 +1,6 @@
 # Test scripts for OSINT
 
-Having some python fun with sites
+These scripts pull data from several sites and then plot the locations found on a Google Map.
 
 ## Usage
 
@@ -10,11 +10,11 @@ The most important requirement is __this script is written in Python 3.x__.
 
 #### Modules
 
-- bs4
-- geocoder
-- gmplot
-- googlemaps
-- requests
+* bs4
+* geocoder
+* gmplot
+* googlemaps
+* requests
 
 If you have PIP installed, type: `pip3 install -r requirements.txt` from the command line and your system should install all required modules.
 
